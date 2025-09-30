@@ -196,7 +196,7 @@ const KnittingChart = () => {
   const [encrypted, setEncrypted] = useState('');
   const [binary, setBinary] = useState('');
   const [chart, setChart] = useState([]);
-  const [repeatPattern, setRepeatPattern] = useState(true);
+  const [repeatPattern, setRepeatPattern] = useState(false);
   const [gridSize, setGridSize] = useState({ rows: 0, cols: 0 });
 
   const handleEncrypt = () => {
