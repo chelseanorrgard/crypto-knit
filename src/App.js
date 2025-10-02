@@ -395,6 +395,17 @@ const KnittingChart = () => {
   const [showEncryptionInfo, setShowEncryptionInfo] = useState(false);
   const [showCraftInfo, setShowCraftInfo] = useState(false);
 
+  // URL parameter handling for QR code functionality
+React.useEffect(() => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const decryptParam = urlParams.get('decrypt');
+  
+  if (decryptParam) {
+    setMode('decrypt');
+    setDecryptCode(decryptParam);
+  }
+}, []);
+
   const handleEncrypt = () => {
     if (!message) return;
     
@@ -488,7 +499,8 @@ const KnittingChart = () => {
     // Generate QR code for cipher code
     let qrCodeDataURL = '';
     try {
-      qrCodeDataURL = await QRCode.toDataURL(algorithms[algorithm].code, {
+      const qrURL = `https://crypto-knit.vercel.app/?decrypt=${algorithms[algorithm].code}`;
+      qrCodeDataURL = await QRCode.toDataURL(qrURL, {
         width: 150,
         margin: 2,
         color: {
