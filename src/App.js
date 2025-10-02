@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Download, Lock, Unlock, Info, ChevronDown, ChevronUp } from 'lucide-react';
+import QRCode from 'qrcode';
 
 // Encryption Functions
 const encryptCaesar = (text, shift = 3) => {
@@ -390,6 +391,7 @@ const KnittingChart = () => {
   const [decryptedMessage, setDecryptedMessage] = useState('');
   
   // Info section states
+  const [showHowToUse, setShowHowToUse] = useState(false);
   const [showEncryptionInfo, setShowEncryptionInfo] = useState(false);
   const [showCraftInfo, setShowCraftInfo] = useState(false);
 
@@ -462,7 +464,7 @@ const KnittingChart = () => {
     setDecryptedMessage(decrypted);
   };
 
-  const exportToPDF = () => {
+  const exportToPDF = async () => {
     const canvas = document.createElement('canvas');
     const cellSize = 8;
     canvas.width = gridSize.cols * cellSize;
@@ -482,6 +484,21 @@ const KnittingChart = () => {
     }
     
     const imageData = canvas.toDataURL('image/png');
+    
+    // Generate QR code for cipher code
+    let qrCodeDataURL = '';
+    try {
+      qrCodeDataURL = await QRCode.toDataURL(algorithms[algorithm].code, {
+        width: 150,
+        margin: 2,
+        color: {
+          dark: '#000000',
+          light: '#ffffff'
+        }
+      });
+    } catch (err) {
+      console.error('QR code generation failed:', err);
+    }
     
     const stitchZero = craftType === 'knitting' 
       ? (knittingDirection === 'flat' ? 'Knit (RS) / Purl (WS)' : 'Knit stitch') 
@@ -509,15 +526,42 @@ const KnittingChart = () => {
             h1 { font-size: 24px; margin-bottom: 10px; }
             .info { margin-bottom: 20px; font-size: 14px; }
             .info p { margin: 5px 0; }
-            .cipher-code-box {
-              display: inline-block;
-              padding: 15px 25px;
-              background: #ffe066;
+            .cipher-code-section {
+              display: flex;
+              align-items: center;
+              gap: 20px;
+              margin: 15px 0;
+              padding: 15px;
+              background: #fffef0;
               border: 3px solid #ffd700;
               border-radius: 8px;
-              font-size: 24px;
+            }
+            .cipher-code-box {
+              flex: 1;
+            }
+            .cipher-code-box h3 {
+              margin: 0 0 5px 0;
+              font-size: 14px;
+              color: #666;
+            }
+            .cipher-code-box .code {
+              font-size: 32px;
               font-weight: bold;
-              margin: 15px 0;
+              color: #d97706;
+              font-family: monospace;
+            }
+            .qr-code {
+              flex-shrink: 0;
+            }
+            .qr-code img {
+              display: block;
+              border: 2px solid #000;
+            }
+            .qr-label {
+              text-align: center;
+              font-size: 11px;
+              color: #666;
+              margin-top: 5px;
             }
             .chart-container {
               margin: 20px 0;
@@ -583,10 +627,19 @@ const KnittingChart = () => {
             <p><strong>${craftType === 'knitting' ? 'Knitting' : 'Crochet'} Direction:</strong> ${knittingDirection === 'flat' ? 'Flat (RS/WS)' : 'In the Round'}</p>
           </div>
           
-          <div class="cipher-code-box">
-            CIPHER CODE: ${algorithms[algorithm].code}
+          <div class="cipher-code-section">
+            <div class="cipher-code-box">
+              <h3>CIPHER CODE:</h3>
+              <div class="code">${algorithms[algorithm].code}</div>
+              <p style="font-size: 12px; color: #666; margin-top: 5px;">Keep this code safe - you'll need it to decrypt!</p>
+            </div>
+            ${qrCodeDataURL ? `
+              <div class="qr-code">
+                <img src="${qrCodeDataURL}" alt="QR Code for ${algorithms[algorithm].code}" width="150" height="150" />
+                <div class="qr-label">Scan for cipher code</div>
+              </div>
+            ` : ''}
           </div>
-          <p style="font-size: 12px; color: #666;">Keep this code safe - you'll need it to decrypt your message!</p>
           
           <div class="binary-section">
             <h3>📋 Binary String (for decryption):</h3>
@@ -611,7 +664,7 @@ const KnittingChart = () => {
             <p>1. Manually convert your ${craftType === 'knitting' ? 'knitted' : 'crocheted'} piece back to binary (0s and 1s)</p>
             <p>2. Use the "Decrypt" tab in the app</p>
             <p>3. Paste the binary string above</p>
-            <p>4. Enter cipher code: <strong>${algorithms[algorithm].code}</strong></p>
+            <p>4. Enter cipher code <strong>${algorithms[algorithm].code}</strong> (or scan the QR code)</p>
             <p>5. Click "Decrypt Message"</p>
           </div>
           <script>
@@ -626,13 +679,73 @@ const KnittingChart = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50 p-8">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-200 via-purple-300 to-pink-300 p-8">
       <div className="max-w-6xl mx-auto">
-        <div className="bg-white rounded-2xl shadow-2xl p-8 mb-8">
-          <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600 mb-4 pb-1">
-            🧶 Cryptographic {craftType === 'knitting' ? 'Knitting' : 'Crochet'} Chart Generator
-          </h1>
-          <p className="text-gray-600 mb-6">Transform your secret messages into beautiful {craftType === 'knitting' ? 'knitting' : 'crochet'} patterns</p>
+        <div className="bg-purple-100 rounded-2xl shadow-2xl p-8 mb-8">
+          <div className="flex items-center gap-4 mb-4">
+            <img src="/preview.png" alt="Logo" className="h-16 w-16 object-contain" />
+            <div>
+              <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600 pb-1">
+                Cryptographic {craftType === 'knitting' ? 'Knitting' : 'Crochet'} Chart Generator
+              </h1>
+              <p className="text-gray-700">Transform your secret messages into beautiful {craftType === 'knitting' ? 'knitting' : 'crochet'} patterns</p>
+            </div>
+          </div>
+
+          {/* How to Use Section */}
+          <div className="mb-6">
+            <button
+              onClick={() => setShowHowToUse(!showHowToUse)}
+              className="w-full flex items-center justify-between p-4 bg-blue-100 hover:bg-blue-200 rounded-lg transition-all"
+            >
+              <div className="flex items-center gap-2">
+                <Info size={20} className="text-blue-600" />
+                <span className="font-semibold text-blue-900">How to Use This Tool</span>
+              </div>
+              {showHowToUse ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+            </button>
+            
+            {showHowToUse && (
+              <div className="p-4 bg-white border-2 border-blue-200 rounded-lg mt-2">
+                <div className="space-y-3 text-sm text-gray-700">
+                  <div>
+                    <h4 className="font-bold text-gray-900 mb-1">Encrypting a Message:</h4>
+                    <ol className="list-decimal ml-5 space-y-1">
+                      <li>Choose between Knitting or Crochet mode</li>
+                      <li>Select the Encrypt tab</li>
+                      <li>Type your secret message in the text box</li>
+                      <li>Choose an encryption algorithm from the dropdown</li>
+                      <li>Select your craft direction (Flat or In the Round)</li>
+                      <li>Choose pattern size (Single iteration for exact size, or Repeated for 100×100 grid)</li>
+                      <li>Click "Encrypt & Generate Chart"</li>
+                      <li>Save your Cipher Code (displayed in yellow box)</li>
+                      <li>Click "Export to PDF" to print your chart</li>
+                    </ol>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-bold text-gray-900 mb-1">Decrypting a Message:</h4>
+                    <ol className="list-decimal ml-5 space-y-1">
+                      <li>Select the Decrypt tab</li>
+                      <li>Convert your finished craft piece back to binary (0s and 1s) by reading the chart</li>
+                      <li>Paste the binary string into the text box</li>
+                      <li>Enter the Cipher Code (from your PDF) or scan the QR code</li>
+                      <li>Click "Decrypt Message" to reveal the original text</li>
+                    </ol>
+                  </div>
+                  
+                  <div className="p-3 bg-yellow-50 border-2 border-yellow-300 rounded">
+                    <p className="font-semibold text-yellow-900 mb-1">⚠️ Important Note:</p>
+                    <p className="text-yellow-800 text-xs">
+                      Some encryption methods modify messages during the process. For example, Playfair Cipher removes spaces and special characters, 
+                      converts to uppercase, and may add padding. A message like "very nice!" might decrypt as "VERYNICEX". 
+                      This is normal behavior for these historical ciphers and not an error.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
           
           {/* Craft Type Toggle */}
           <div className="flex gap-4 mb-4">
@@ -641,31 +754,31 @@ const KnittingChart = () => {
               className={`px-6 py-2 rounded-lg font-semibold transition-all ${
                 craftType === 'knitting'
                   ? 'bg-purple-600 text-white'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  : 'bg-purple-200 text-gray-700 hover:bg-purple-300'
               }`}
             >
-              🧶 Knitting
+              Knitting
             </button>
             <button
               onClick={() => setCraftType('crochet')}
               className={`px-6 py-2 rounded-lg font-semibold transition-all ${
                 craftType === 'crochet'
                   ? 'bg-purple-600 text-white'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  : 'bg-purple-200 text-gray-700 hover:bg-purple-300'
               }`}
             >
-              🪡 Crochet
+              Crochet
             </button>
           </div>
           
           {/* Mode Toggle */}
-          <div className="flex gap-4 mb-6 border-b-2 border-gray-200">
+          <div className="flex gap-4 mb-6 border-b-2 border-purple-300">
             <button
               onClick={() => setMode('encrypt')}
               className={`flex items-center gap-2 px-6 py-3 font-semibold transition-all ${
                 mode === 'encrypt'
-                  ? 'text-purple-600 border-b-4 border-purple-600'
-                  : 'text-gray-500 hover:text-gray-700'
+                  ? 'text-purple-700 border-b-4 border-purple-600'
+                  : 'text-gray-600 hover:text-gray-800'
               }`}
             >
               <Lock size={20} />
@@ -675,8 +788,8 @@ const KnittingChart = () => {
               onClick={() => setMode('decrypt')}
               className={`flex items-center gap-2 px-6 py-3 font-semibold transition-all ${
                 mode === 'decrypt'
-                  ? 'text-purple-600 border-b-4 border-purple-600'
-                  : 'text-gray-500 hover:text-gray-700'
+                  ? 'text-purple-700 border-b-4 border-purple-600'
+                  : 'text-gray-600 hover:text-gray-800'
               }`}
             >
               <Unlock size={20} />
@@ -694,7 +807,7 @@ const KnittingChart = () => {
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   placeholder="Enter your message here..."
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none"
+                  className="w-full px-4 py-3 border-2 border-purple-300 rounded-lg focus:border-purple-500 focus:outline-none bg-white"
                   rows="3"
                 />
               </div>
@@ -706,7 +819,7 @@ const KnittingChart = () => {
                 <select
                   value={algorithm}
                   onChange={(e) => setAlgorithm(e.target.value)}
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none"
+                  className="w-full px-4 py-3 border-2 border-purple-300 rounded-lg focus:border-purple-500 focus:outline-none bg-white"
                 >
                   {Object.entries(algorithms).map(([key, { name, code }]) => (
                     <option key={key} value={key}>{name} ({code})</option>
@@ -789,7 +902,7 @@ const KnittingChart = () => {
               </button>
               
               {encrypted && (
-                <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+                <div className="mt-6 p-4 bg-white rounded-lg border-2 border-purple-200">
                   <div className="mb-4 p-3 bg-yellow-100 border-2 border-yellow-400 rounded-lg">
                     <p className="text-sm font-semibold text-yellow-900 mb-1">Your Cipher Code:</p>
                     <p className="text-2xl font-bold text-yellow-900">{algorithms[algorithm].code}</p>
@@ -807,7 +920,7 @@ const KnittingChart = () => {
               <div className="p-4 bg-blue-50 border-2 border-blue-300 rounded-lg">
                 <p className="text-sm text-blue-800">
                   <strong>How to decrypt:</strong> Convert your {craftType === 'knitting' ? 'knitted' : 'crocheted'} chart back to binary (0=white/{craftType === 'knitting' ? 'knit' : 'sc'}, 1=black/{craftType === 'knitting' ? 'purl' : 'dc'}), 
-                  paste the binary string below, enter the cipher code from your PDF, and click decrypt.
+                  paste the binary string below, enter the cipher code from your PDF (or scan the QR code), and click decrypt.
                 </p>
               </div>
 
@@ -819,21 +932,21 @@ const KnittingChart = () => {
                   value={decryptBinary}
                   onChange={(e) => setDecryptBinary(e.target.value)}
                   placeholder="Paste binary string here (e.g., 01101000011001010110110001101100011011110...)"
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none font-mono text-xs"
+                  className="w-full px-4 py-3 border-2 border-purple-300 rounded-lg focus:border-purple-500 focus:outline-none font-mono text-xs bg-white"
                   rows="6"
                 />
               </div>
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Cipher Code (from PDF)
+                  Cipher Code (from PDF or QR code)
                 </label>
                 <input
                   type="text"
                   value={decryptCode}
                   onChange={(e) => setDecryptCode(e.target.value)}
                   placeholder="e.g., C1, C2, C3..."
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none font-mono text-lg"
+                  className="w-full px-4 py-3 border-2 border-purple-300 rounded-lg focus:border-purple-500 focus:outline-none font-mono text-lg bg-white"
                 />
               </div>
               
@@ -858,10 +971,10 @@ const KnittingChart = () => {
           <div className="mt-8 space-y-4">
             <button
               onClick={() => setShowEncryptionInfo(!showEncryptionInfo)}
-              className="w-full flex items-center justify-between p-4 bg-purple-50 hover:bg-purple-100 rounded-lg transition-all"
+              className="w-full flex items-center justify-between p-4 bg-purple-200 hover:bg-purple-300 rounded-lg transition-all"
             >
               <div className="flex items-center gap-2">
-                <Info size={20} className="text-purple-600" />
+                <Info size={20} className="text-purple-700" />
                 <span className="font-semibold text-purple-900">How Do These Encryptions Work?</span>
               </div>
               {showEncryptionInfo ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
@@ -880,7 +993,7 @@ const KnittingChart = () => {
             
             <button
               onClick={() => setShowCraftInfo(!showCraftInfo)}
-              className="w-full flex items-center justify-between p-4 bg-pink-50 hover:bg-pink-100 rounded-lg transition-all"
+              className="w-full flex items-center justify-between p-4 bg-pink-100 hover:bg-pink-200 rounded-lg transition-all"
             >
               <div className="flex items-center gap-2">
                 <Info size={20} className="text-pink-600" />
@@ -946,7 +1059,7 @@ const KnittingChart = () => {
         </div>
         
         {chart.length > 0 && mode === 'encrypt' && (
-          <div className="bg-white rounded-2xl shadow-2xl p-8">
+          <div className="bg-purple-100 rounded-2xl shadow-2xl p-8">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-bold text-gray-800">
                 Your {craftType === 'knitting' ? 'Knitting' : 'Crochet'} Chart ({gridSize.cols}×{gridSize.rows})
@@ -960,7 +1073,7 @@ const KnittingChart = () => {
               </button>
             </div>
             
-            <div className="bg-gray-100 p-4 rounded-lg mb-4">
+            <div className="bg-white p-4 rounded-lg mb-4 border-2 border-purple-200">
               {craftType === 'knitting' && knittingDirection === 'flat' ? (
                 <div className="space-y-2">
                   <p className="text-sm font-semibold text-gray-700 mb-2">Stitch Key (varies by row):</p>
