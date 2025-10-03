@@ -695,7 +695,7 @@ React.useEffect(() => {
       <div className="max-w-6xl mx-auto">
         <div className="bg-purple-100 rounded-2xl shadow-2xl p-8 mb-8">
           <div className="text-center mb-4">
-            <img src="/preview.png" alt="Logo" className="h-40 w-40 object-contain mx-auto mb-3" />
+            <img src="/logo.png" alt="Logo" className="h-40 w-40 object-contain mx-auto mb-3" />
             <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600 pb-1">
               Cryptographic {craftType === 'knitting' ? 'Knitting' : 'Crochet'} Chart Generator
             </h1>
