@@ -694,21 +694,19 @@ React.useEffect(() => {
     <div className="min-h-screen bg-gradient-to-br from-indigo-200 via-purple-300 to-pink-300 p-8">
       <div className="max-w-6xl mx-auto">
         <div className="bg-purple-100 rounded-2xl shadow-2xl p-8 mb-8">
-          <div className="flex items-center gap-4 mb-4">
-            <img src="/preview.png" alt="Logo" className="h-16 w-16 object-contain" />
-            <div>
-              <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600 pb-1">
-                Cryptographic {craftType === 'knitting' ? 'Knitting' : 'Crochet'} Chart Generator
-              </h1>
-              <p className="text-gray-700">Transform your secret messages into beautiful {craftType === 'knitting' ? 'knitting' : 'crochet'} patterns</p>
-            </div>
+          <div className="text-center mb-4">
+            <img src="/preview.png" alt="Logo" className="h-40 w-40 object-contain mx-auto mb-3" />
+            <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600 pb-1">
+              Cryptographic {craftType === 'knitting' ? 'Knitting' : 'Crochet'} Chart Generator
+            </h1>
+            <p className="text-gray-700">Transform your secret messages into beautiful {craftType === 'knitting' ? 'knitting' : 'crochet'} patterns</p>
           </div>
 
           {/* How to Use Section */}
           <div className="mb-6">
             <button
               onClick={() => setShowHowToUse(!showHowToUse)}
-              className="w-full flex items-center justify-between p-4 bg-blue-100 hover:bg-blue-200 rounded-lg transition-all"
+              className="w-full flex items-center justify-between p-4 bg-blue-100 hover:bg-blue-200 rounded-lg transition-all border-2 border-blue-300"
             >
               <div className="flex items-center gap-2">
                 <Info size={20} className="text-blue-600" />
@@ -983,7 +981,7 @@ React.useEffect(() => {
           <div className="mt-8 space-y-4">
             <button
               onClick={() => setShowEncryptionInfo(!showEncryptionInfo)}
-              className="w-full flex items-center justify-between p-4 bg-purple-200 hover:bg-purple-300 rounded-lg transition-all"
+              className="w-full flex items-center justify-between p-4 bg-purple-200 hover:bg-purple-300 rounded-lg transition-all border-2 border-purple-400"
             >
               <div className="flex items-center gap-2">
                 <Info size={20} className="text-purple-700" />
@@ -1005,7 +1003,7 @@ React.useEffect(() => {
             
             <button
               onClick={() => setShowCraftInfo(!showCraftInfo)}
-              className="w-full flex items-center justify-between p-4 bg-pink-100 hover:bg-pink-200 rounded-lg transition-all"
+              className="w-full flex items-center justify-between p-4 bg-pink-100 hover:bg-pink-200 rounded-lg transition-all border-2 border-pink-300"
             >
               <div className="flex items-center gap-2">
                 <Info size={20} className="text-pink-600" />
