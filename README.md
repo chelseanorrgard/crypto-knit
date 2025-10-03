@@ -78,6 +78,7 @@ cd crypto-knit
 npm install
 npm install lucide-react
 npm install -D tailwindcss@3 postcss autoprefixer
+npm install qrcode
 ```
 
 ### 3️⃣ Ensure Tailwind config files exist
