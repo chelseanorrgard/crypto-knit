@@ -544,8 +544,8 @@ React.useEffect(() => {
               gap: 20px;
               margin: 15px 0;
               padding: 15px;
-              background: #fffef0;
-              border: 3px solid #ffd700;
+              background: #dbeafe;
+              border: 3px solid #60a5fa;
               border-radius: 8px;
             }
             .cipher-code-box {
@@ -559,7 +559,7 @@ React.useEffect(() => {
             .cipher-code-box .code {
               font-size: 32px;
               font-weight: bold;
-              color: #d97706;
+              color: #1e40af;
               font-family: monospace;
             }
             .qr-code {
@@ -619,8 +619,8 @@ React.useEffect(() => {
             .decrypt-info {
               margin-top: 15px;
               padding: 10px;
-              background: #fff3cd;
-              border: 2px solid #ffc107;
+              background: #dbeafe;
+              border: 2px solid #60a5fa;
               border-radius: 8px;
             }
             @media print {
@@ -726,9 +726,9 @@ React.useEffect(() => {
                       <li>Type your secret message in the text box</li>
                       <li>Choose an encryption algorithm from the dropdown</li>
                       <li>Select your craft direction (Flat or In the Round)</li>
-                      <li>Choose pattern size (Single iteration for exact size, or Repeated for 100×100 grid)</li>
+                      <li>Choose pattern size (Single iteration for exact size, or Repeated for 100×100 or larger grid)</li>
                       <li>Click "Encrypt & Generate Chart"</li>
-                      <li>Save your Cipher Code (displayed in yellow box)</li>
+                      <li>Save your Cipher Code (displayed in blue box)</li>
                       <li>Click "Export to PDF" to print your chart</li>
                     </ol>
                   </div>
@@ -737,9 +737,10 @@ React.useEffect(() => {
                     <h4 className="font-bold text-gray-900 mb-1">Decrypting a Message:</h4>
                     <ol className="list-decimal ml-5 space-y-1">
                       <li>Select the Decrypt tab</li>
+                      <li><strong>If you have a QR code:</strong> Scan it first (this will open the decrypt screen with the cipher code pre-filled)</li>
                       <li>Convert your finished craft piece back to binary (0s and 1s) by reading the chart</li>
                       <li>Paste the binary string into the text box</li>
-                      <li>Enter the Cipher Code (from your PDF) or scan the QR code</li>
+                      <li><strong>If you don't have a QR code:</strong> Manually enter the Cipher Code from your PDF</li>
                       <li>Click "Decrypt Message" to reveal the original text</li>
                     </ol>
                   </div>
@@ -913,10 +914,10 @@ React.useEffect(() => {
               
               {encrypted && (
                 <div className="mt-6 p-4 bg-white rounded-lg border-2 border-purple-200">
-                  <div className="mb-4 p-3 bg-yellow-100 border-2 border-yellow-400 rounded-lg">
-                    <p className="text-sm font-semibold text-yellow-900 mb-1">Your Cipher Code:</p>
-                    <p className="text-2xl font-bold text-yellow-900">{algorithms[algorithm].code}</p>
-                    <p className="text-xs text-yellow-800 mt-1">Save this code - you'll need it to decrypt!</p>
+                  <div className="mb-4 p-3 bg-blue-100 border-2 border-blue-400 rounded-lg">
+                    <p className="text-sm font-semibold text-blue-900 mb-1">Your Cipher Code:</p>
+                    <p className="text-2xl font-bold text-blue-900">{algorithms[algorithm].code}</p>
+                    <p className="text-xs text-blue-800 mt-1">Save this code - you'll need it to decrypt!</p>
                   </div>
                   <p className="text-sm text-gray-600 mb-1">Encrypted Text:</p>
                   <p className="font-mono text-sm break-all">{encrypted}</p>
