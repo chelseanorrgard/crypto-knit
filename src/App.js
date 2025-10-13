@@ -103,14 +103,32 @@ const KnittingChart = () => {
     setDecryptedMessage(decrypted);
   };
 
-  const exportToPDF = async () => {
-    // Create canvas with extra space for numbers
-    const canvas = document.createElement('canvas');
-    const cellSize = 8;
-    const numberSpace = 20;
-    canvas.width = gridSize.cols * cellSize + numberSpace;
-    canvas.height = gridSize.rows * cellSize + numberSpace;
-    const ctx = canvas.getContext('2d');
+    const exportToPDF = async () => {
+      // Dynamic cell sizing for PDF - but constrained to fit on page
+      const maxDimension = Math.max(gridSize.cols, gridSize.rows);
+      
+      // Calculate ideal cell size based on chart dimensions
+      let idealCellSize;
+      if (maxDimension <= 20) idealCellSize = 24;
+      else if (maxDimension <= 30) idealCellSize = 18;
+      else if (maxDimension <= 50) idealCellSize = 12;
+      else if (maxDimension <= 100) idealCellSize = 8;
+      else idealCellSize = 6;
+      
+      // Constrain to maximum page size (roughly 800px for printable area)
+      const maxPrintSize = 800;
+      const maxCellSize = Math.floor(maxPrintSize / Math.max(gridSize.cols, gridSize.rows));
+      const cellSize = Math.min(idealCellSize, maxCellSize);
+      
+      // Dynamic spacing and font size based on cell size
+      const numberSpace = cellSize >= 12 ? 30 : cellSize >= 8 ? 25 : 20;
+      const fontSize = cellSize >= 12 ? 12 : cellSize >= 8 ? 10 : 8;
+      
+      // Create canvas with extra space for numbers
+      const canvas = document.createElement('canvas');
+      canvas.width = gridSize.cols * cellSize + numberSpace;
+      canvas.height = gridSize.rows * cellSize + numberSpace;
+      const ctx = canvas.getContext('2d');
     
     // Fill background
     ctx.fillStyle = '#ffffff';
@@ -131,18 +149,19 @@ const KnittingChart = () => {
     
     // Add row numbers on the right
     ctx.fillStyle = '#000000';
-    ctx.font = 'bold 10px Arial';
+    ctx.font = `bold ${fontSize}px Arial`;
     ctx.textAlign = 'left';
     for (let row = 0; row < gridSize.rows; row++) {
-      ctx.fillText((gridSize.rows - row).toString(), gridSize.cols * cellSize + 4, row * cellSize + cellSize / 2 + 3);
+      const yOffset = cellSize >= 12 ? 4 : 3;
+      ctx.fillText((gridSize.rows - row).toString(), gridSize.cols * cellSize + 4, row * cellSize + cellSize / 2 + yOffset);
     }
-    
-    // Add column numbers at the bottom (every 5th + stitch 1)
-// Add column numbers at the bottom
+
+    // Add column numbers at the bottom
     ctx.textAlign = 'center';
     for (let col = 0; col < gridSize.cols; col++) {
       const stitchNumber = gridSize.cols - col;
-      ctx.fillText(stitchNumber.toString(), col * cellSize + cellSize / 2, gridSize.rows * cellSize + 12);
+      const yOffset = cellSize >= 12 ? 15 : 12;
+      ctx.fillText(stitchNumber.toString(), col * cellSize + cellSize / 2, gridSize.rows * cellSize + yOffset);
     }
     
     const imageData = canvas.toDataURL('image/png');
