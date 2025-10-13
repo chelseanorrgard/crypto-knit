@@ -1,377 +1,8 @@
 import React, { useState } from 'react';
 import { Download, Lock, Unlock, Info, ChevronDown, ChevronUp } from 'lucide-react';
 import QRCode from 'qrcode';
-
-// Encryption Functions
-const encryptCaesar = (text, shift = 3) => {
-  return text.split('').map(char => {
-    const code = char.charCodeAt(0);
-    if (code >= 65 && code <= 90) return String.fromCharCode(((code - 65 + shift) % 26) + 65);
-    if (code >= 97 && code <= 122) return String.fromCharCode(((code - 97 + shift) % 26) + 97);
-    return char;
-  }).join('');
-};
-
-const encryptXOR = (text, key = 'SECRET') => {
-  let result = '';
-  for (let i = 0; i < text.length; i++) {
-    result += String.fromCharCode(text.charCodeAt(i) ^ key.charCodeAt(i % key.length));
-  }
-  const utf8Bytes = new TextEncoder().encode(result);
-  const binary = Array.from(utf8Bytes).map(b => String.fromCharCode(b)).join('');
-  return btoa(binary);
-};
-
-const encryptVigenere = (text, key = 'KEY') => {
-  key = key.toUpperCase();
-  let result = '', keyIndex = 0;
-  for (let i = 0; i < text.length; i++) {
-    const char = text[i], code = char.charCodeAt(0);
-    if (code >= 65 && code <= 90) {
-      const shift = key.charCodeAt(keyIndex % key.length) - 65;
-      result += String.fromCharCode(((code - 65 + shift) % 26) + 65); keyIndex++;
-    } else if (code >= 97 && code <= 122) {
-      const shift = key.charCodeAt(keyIndex % key.length) - 65;
-      result += String.fromCharCode(((code - 97 + shift) % 26) + 97); keyIndex++;
-    } else result += char;
-  }
-  return result;
-};
-
-const encryptROT13 = (text) => encryptCaesar(text, 13);
-
-const encryptAtbash = (text) => {
-  return text.split('').map(char => {
-    const code = char.charCodeAt(0);
-    if (code >= 65 && code <= 90) return String.fromCharCode(90 - (code - 65));
-    if (code >= 97 && code <= 122) return String.fromCharCode(122 - (code - 97));
-    return char;
-  }).join('');
-};
-
-const encryptReverse = (text) => text.split('').reverse().join('');
-
-const encryptBase64 = (text) => {
-  const utf8Bytes = new TextEncoder().encode(text);
-  const binary = Array.from(utf8Bytes).map(b => String.fromCharCode(b)).join('');
-  return btoa(binary);
-};
-
-const encryptSimpleSubstitution = (text) => {
-  const alphabet = 'abcdefghijklmnopqrstuvwxyz';
-  const cipher = 'qwertyuiopasdfghjklzxcvbnm';
-  return text.split('').map(char => {
-    const lower = char.toLowerCase();
-    const index = alphabet.indexOf(lower);
-    if (index !== -1) return char === char.toUpperCase() ? cipher[index].toUpperCase() : cipher[index];
-    return char;
-  }).join('');
-};
-
-const encryptRailFence = (text, rails = 3) => {
-  if (rails <= 1 || text.length <= rails) return text;
-  const fence = Array.from({ length: rails }, () => []);
-  let rail = 0, direction = 1;
-  for (let char of text) {
-    fence[rail].push(char);
-    rail += direction;
-    if (rail === 0 || rail === rails - 1) direction *= -1;
-  }
-  return fence.map(row => row.join('')).join('');
-};
-
-const encryptPlayfair = (text, key = 'KEYWORD') => {
-  const alphabet = 'ABCDEFGHIKLMNOPQRSTUVWXYZ';
-  const keySquare = [...new Set((key + alphabet).toUpperCase().replace(/J/g, 'I'))].slice(0, 25);
-  const findPos = (char) => {
-    const index = keySquare.indexOf(char);
-    return [Math.floor(index / 5), index % 5];
-  };
-  let prepared = text.toUpperCase().replace(/J/g, 'I').replace(/[^A-Z]/g, '');
-  let digraphs = [];
-  for (let i = 0; i < prepared.length; i++) {
-    let a = prepared[i], b = prepared[i + 1];
-    if (a === b || !b) { b = 'X'; i++; } else i++;
-    digraphs.push([a, b]);
-  }
-  let result = '';
-  for (let [a, b] of digraphs) {
-    const [r1, c1] = findPos(a), [r2, c2] = findPos(b);
-    if (r1 === r2) { result += keySquare[r1 * 5 + (c1 + 1) % 5]; result += keySquare[r2 * 5 + (c2 + 1) % 5]; }
-    else if (c1 === c2) { result += keySquare[((r1 + 1) % 5) * 5 + c1]; result += keySquare[((r2 + 1) % 5) * 5 + c2]; }
-    else { result += keySquare[r1 * 5 + c2]; result += keySquare[r2 * 5 + c1]; }
-  }
-  return result;
-};
-
-const encryptBaconian = (text) => {
-  const map = {
-    A: 'AAAAA', B: 'AAAAB', C: 'AAABA', D: 'AAABB', E: 'AABAA',
-    F: 'AABAB', G: 'AABBA', H: 'AABBB', I: 'ABAAA', J: 'ABAAB',
-    K: 'ABABA', L: 'ABABB', M: 'ABBAA', N: 'ABBAB', O: 'ABBBA',
-    P: 'ABBBB', Q: 'BAAAA', R: 'BAAAB', S: 'BAABA', T: 'BAABB',
-    U: 'BABAA', V: 'BABAB', W: 'BABBA', X: 'BABBB', Y: 'BBAAA',
-    Z: 'BBAAB'
-  };
-  return text.split('').map(c => {
-    const upper = c.toUpperCase();
-    return map[upper] || '00000';
-  }).join('');
-};
-
-const encryptPolybius = (text) => {
-  const square = [
-    ['A','B','C','D','E'],
-    ['F','G','H','I','K'],
-    ['L','M','N','O','P'],
-    ['Q','R','S','T','U'],
-    ['V','W','X','Y','Z']
-  ];
-  return text.toUpperCase().replace(/J/g, 'I').split('').map(c => {
-    for (let r = 0; r < 5; r++) {
-      for (let col = 0; col < 5; col++) {
-        if (square[r][col] === c) {
-          const rowBin = (r + 1).toString(2).padStart(3, '0');
-          const colBin = (col + 1).toString(2).padStart(3, '0');
-          return rowBin + colBin;
-        }
-      }
-    }
-    return '000000';
-  }).join('');
-};
-
-const encryptAutokey = (text, key='KEY') => {
-  key = key.toUpperCase();
-  let result = '', extendedKey = key + text.toUpperCase(), keyIndex = 0;
-  for(let char of text){
-    const code = char.charCodeAt(0);
-    if(code>=65 && code<=90){
-      const shift = extendedKey.charCodeAt(keyIndex) - 65;
-      result += String.fromCharCode(((code - 65 + shift) % 26)+65);
-      keyIndex++;
-    } else if(code>=97 && code<=122){
-      const shift = extendedKey.charCodeAt(keyIndex) - 65;
-      result += String.fromCharCode(((code - 97 + shift) % 26)+97);
-      keyIndex++;
-    } else result += char;
-  }
-  return result;
-};
-
-// Decryption Functions
-const decryptCaesar = (text, shift = 3) => encryptCaesar(text, 26 - shift);
-
-const decryptXOR = (text, key = 'SECRET') => {
-  try {
-    const decoded = atob(text);
-    const bytes = new Uint8Array(decoded.split('').map(c => c.charCodeAt(0)));
-    const xorResult = new TextDecoder().decode(bytes);
-    let result = '';
-    for (let i = 0; i < xorResult.length; i++) {
-      result += String.fromCharCode(xorResult.charCodeAt(i) ^ key.charCodeAt(i % key.length));
-    }
-    return result;
-  } catch { return '[Decryption failed]'; }
-};
-
-const decryptVigenere = (text, key = 'KEY') => {
-  key = key.toUpperCase();
-  let result = '', keyIndex = 0;
-  for (let i = 0; i < text.length; i++) {
-    const char = text[i], code = char.charCodeAt(0);
-    if (code >= 65 && code <= 90) {
-      const shift = key.charCodeAt(keyIndex % key.length) - 65;
-      result += String.fromCharCode(((code - 65 - shift + 26) % 26) + 65); keyIndex++;
-    } else if (code >= 97 && code <= 122) {
-      const shift = key.charCodeAt(keyIndex % key.length) - 65;
-      result += String.fromCharCode(((code - 97 - shift + 26) % 26) + 97); keyIndex++;
-    } else result += char;
-  }
-  return result;
-};
-
-const decryptROT13 = (text) => encryptROT13(text);
-const decryptAtbash = (text) => encryptAtbash(text);
-const decryptReverse = (text) => encryptReverse(text);
-
-const decryptBase64 = (text) => {
-  try {
-    const decoded = atob(text);
-    const bytes = new Uint8Array(decoded.split('').map(c => c.charCodeAt(0)));
-    return new TextDecoder().decode(bytes);
-  } catch { return '[Decryption failed]'; }
-};
-
-const decryptSimpleSubstitution = (text) => {
-  const alphabet = 'abcdefghijklmnopqrstuvwxyz';
-  const cipher = 'qwertyuiopasdfghjklzxcvbnm';
-  return text.split('').map(char => {
-    const lower = char.toLowerCase();
-    const index = cipher.indexOf(lower);
-    if (index !== -1) return char === char.toUpperCase() ? alphabet[index].toUpperCase() : alphabet[index];
-    return char;
-  }).join('');
-};
-
-const decryptRailFence = (text, rails = 3) => {
-  if (rails <= 1) return text;
-  const fence = Array.from({ length: rails }, () => []);
-  const pattern = [];
-  let rail = 0, direction = 1;
-  for (let i = 0; i < text.length; i++) {
-    pattern.push(rail);
-    rail += direction;
-    if (rail === 0 || rail === rails - 1) direction *= -1;
-  }
-  const counts = Array(rails).fill(0);
-  pattern.forEach(r => counts[r]++);
-  let idx = 0;
-  for (let r = 0; r < rails; r++) {
-    fence[r] = text.slice(idx, idx + counts[r]).split('');
-    idx += counts[r];
-  }
-  let result = '';
-  const pointers = Array(rails).fill(0);
-  pattern.forEach(r => {
-    result += fence[r][pointers[r]++];
-  });
-  return result;
-};
-
-const decryptPlayfair = (text, key = 'KEYWORD') => {
-  const alphabet = 'ABCDEFGHIKLMNOPQRSTUVWXYZ';
-  const keySquare = [...new Set((key + alphabet).toUpperCase().replace(/J/g, 'I'))].slice(0, 25);
-  const findPos = (char) => {
-    const index = keySquare.indexOf(char);
-    return [Math.floor(index / 5), index % 5];
-  };
-  let result = '';
-  for (let i = 0; i < text.length; i += 2) {
-    let a = text[i], b = text[i + 1] || 'X';
-    const [r1, c1] = findPos(a), [r2, c2] = findPos(b);
-    if (r1 === r2) { result += keySquare[r1 * 5 + (c1 + 4) % 5]; result += keySquare[r2 * 5 + (c2 + 4) % 5]; }
-    else if (c1 === c2) { result += keySquare[((r1 + 4) % 5) * 5 + c1]; result += keySquare[((r2 + 4) % 5) * 5 + c2]; }
-    else { result += keySquare[r1 * 5 + c2]; result += keySquare[r2 * 5 + c1]; }
-  }
-  return result;
-};
-
-const decryptBaconian = (text) => {
-  const map = {
-    'AAAAA': 'A', 'AAAAB': 'B', 'AAABA': 'C', 'AAABB': 'D', 'AABAA': 'E',
-    'AABAB': 'F', 'AABBA': 'G', 'AABBB': 'H', 'ABAAA': 'I', 'ABAAB': 'J',
-    'ABABA': 'K', 'ABABB': 'L', 'ABBAA': 'M', 'ABBAB': 'N', 'ABBBA': 'O',
-    'ABBBB': 'P', 'BAAAA': 'Q', 'BAAAB': 'R', 'BAABA': 'S', 'BAABB': 'T',
-    'BABAA': 'U', 'BABAB': 'V', 'BABBA': 'W', 'BABBB': 'X', 'BBAAA': 'Y',
-    'BBAAB': 'Z'
-  };
-  let result = '';
-  for (let i = 0; i < text.length; i += 5) {
-    const chunk = text.slice(i, i + 5);
-    result += map[chunk] || '?';
-  }
-  return result;
-};
-
-const decryptPolybius = (text) => {
-  const square = [
-    ['A','B','C','D','E'],
-    ['F','G','H','I','K'],
-    ['L','M','N','O','P'],
-    ['Q','R','S','T','U'],
-    ['V','W','X','Y','Z']
-  ];
-  let result = '';
-  for (let i = 0; i < text.length; i += 6) {
-    const rowBin = text.slice(i, i + 3);
-    const colBin = text.slice(i + 3, i + 6);
-    const row = parseInt(rowBin, 2) - 1;
-    const col = parseInt(colBin, 2) - 1;
-    if (row >= 0 && row < 5 && col >= 0 && col < 5) {
-      result += square[row][col];
-    } else result += '?';
-  }
-  return result;
-};
-
-const decryptAutokey = (text, key='KEY') => {
-  key = key.toUpperCase();
-  let result = '', keyIndex = 0;
-  for(let char of text){
-    const code = char.charCodeAt(0);
-    if(code>=65 && code<=90){
-      const shift = (keyIndex < key.length) ? key.charCodeAt(keyIndex) - 65 : result.charCodeAt(keyIndex - key.length) - 65;
-      result += String.fromCharCode(((code - 65 - shift + 26) % 26)+65);
-      keyIndex++;
-    } else if(code>=97 && code<=122){
-      const shift = (keyIndex < key.length) ? key.charCodeAt(keyIndex) - 65 : result.toUpperCase().charCodeAt(keyIndex - key.length) - 65;
-      result += String.fromCharCode(((code - 97 - shift + 26) % 26)+97);
-      keyIndex++;
-    } else result += char;
-  }
-  return result;
-};
-
-// Algorithm definitions with cipher codes
-const algorithms = {
-  caesar: { name: 'Caesar Cipher', code: 'C1', encrypt: encryptCaesar, decrypt: decryptCaesar, 
-    description: 'Shifts each letter by a fixed number of positions in the alphabet (default 3). Simple but historically significant.' },
-  xor: { name: 'XOR Cipher', code: 'C2', encrypt: encryptXOR, decrypt: decryptXOR,
-    description: 'Uses XOR operation with a secret key. Each character is combined with the key using bitwise XOR.' },
-  vigenere: { name: 'Vigenère Cipher', code: 'C3', encrypt: encryptVigenere, decrypt: decryptVigenere,
-    description: 'Uses a keyword to shift letters by different amounts. More secure than Caesar cipher.' },
-  rot13: { name: 'ROT13', code: 'C4', encrypt: encryptROT13, decrypt: decryptROT13,
-    description: 'Special case of Caesar cipher with a shift of 13. Applying it twice returns the original text.' },
-  atbash: { name: 'Atbash Cipher', code: 'C5', encrypt: encryptAtbash, decrypt: decryptAtbash,
-    description: 'Reverses the alphabet (A↔Z, B↔Y, etc.). Ancient Hebrew cipher.' },
-  reverse: { name: 'Reverse', code: 'C6', encrypt: encryptReverse, decrypt: decryptReverse,
-    description: 'Simply reverses the entire message. Very simple obfuscation method.' },
-  base64: { name: 'Base64', code: 'C7', encrypt: encryptBase64, decrypt: decryptBase64,
-    description: 'Encodes data using 64 printable ASCII characters. Commonly used for data transmission.' },
-  substitution: { name: 'Simple Substitution', code: 'C8', encrypt: encryptSimpleSubstitution, decrypt: decryptSimpleSubstitution,
-    description: 'Each letter is replaced by another fixed letter. Can be broken with frequency analysis.' },
-  railfence: { name: 'Rail Fence', code: 'C9', encrypt: encryptRailFence, decrypt: decryptRailFence,
-    description: 'Writes the message in a zigzag pattern across multiple rails, then reads row by row.' },
-  playfair: { name: 'Playfair Cipher', code: 'C10', encrypt: encryptPlayfair, decrypt: decryptPlayfair,
-    description: 'Uses a 5×5 grid of letters and encrypts pairs of letters (digraphs). Used in WWI.' },
-  baconian: { name: 'Baconian Cipher', code: 'C11', encrypt: encryptBaconian, decrypt: decryptBaconian,
-    description: 'Encodes each letter as a 5-bit pattern using only A and B. Can be hidden in text formatting.' },
-  polybius: { name: 'Polybius Square', code: 'C12', encrypt: encryptPolybius, decrypt: decryptPolybius,
-    description: 'Uses a 5×5 grid where each letter is represented by its row and column coordinates.' },
-  autokey: { name: 'Autokey Cipher', code: 'C13', encrypt: encryptAutokey, decrypt: decryptAutokey,
-    description: 'Like Vigenère but uses the message itself (after the key) as the key. More secure.' }
-};
-
-const textToBinary = (text, algorithmKey) => {
-  if(['baconian','polybius'].includes(algorithmKey)){
-    if(algorithmKey==='baconian') return text.split('').map(c => c==='A'?'0':c==='B'?'1':'0').join('');
-    if(algorithmKey==='polybius') return text.split('').map(d=>d>='0' && d<='9'?parseInt(d,10).toString(2).padStart(3,'0'):'00').join('');
-  }
-  return text.split('').map(c => c.charCodeAt(0).toString(2).padStart(8,'0')).join('');
-};
-
-const binaryToText = (binary, algorithmKey) => {
-  if(['baconian','polybius'].includes(algorithmKey)){
-    if(algorithmKey==='baconian') return binary.split('').map(b => b==='0'?'A':'B').join('');
-    if(algorithmKey==='polybius') {
-      let result = '';
-      for(let i=0; i<binary.length; i+=3){
-        const chunk = binary.slice(i, i+3);
-        result += parseInt(chunk, 2).toString();
-      }
-      return result;
-    }
-  }
-  let result = '';
-  for (let i = 0; i < binary.length; i += 8) {
-    const byte = binary.slice(i, i + 8);
-    if (byte.length === 8) {
-      result += String.fromCharCode(parseInt(byte, 2));
-    }
-  }
-  return result;
-};
+import { algorithms } from './utils/algorithms';
+import { textToBinary, binaryToText } from './utils/binaryConversion';
 
 const KnittingChart = () => {
   const [mode, setMode] = useState('encrypt');
@@ -385,26 +16,24 @@ const KnittingChart = () => {
   const [craftType, setCraftType] = useState('knitting');
   const [knittingDirection, setKnittingDirection] = useState('flat');
   
-  // Decryption states
   const [decryptBinary, setDecryptBinary] = useState('');
   const [decryptCode, setDecryptCode] = useState('');
   const [decryptedMessage, setDecryptedMessage] = useState('');
   
-  // Info section states
   const [showHowToUse, setShowHowToUse] = useState(false);
   const [showEncryptionInfo, setShowEncryptionInfo] = useState(false);
   const [showCraftInfo, setShowCraftInfo] = useState(false);
 
   // URL parameter handling for QR code functionality
-React.useEffect(() => {
-  const urlParams = new URLSearchParams(window.location.search);
-  const decryptParam = urlParams.get('decrypt');
-  
-  if (decryptParam) {
-    setMode('decrypt');
-    setDecryptCode(decryptParam);
-  }
-}, []);
+  React.useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const decryptParam = urlParams.get('decrypt');
+    
+    if (decryptParam) {
+      setMode('decrypt');
+      setDecryptCode(decryptParam);
+    }
+  }, []);
 
   const handleEncrypt = () => {
     if (!message) return;
@@ -462,7 +91,6 @@ React.useEffect(() => {
   const handleDecrypt = () => {
     if (!decryptBinary || !decryptCode) return;
     
-    // Find algorithm by code
     const algoKey = Object.keys(algorithms).find(key => algorithms[key].code === decryptCode.toUpperCase());
     if (!algoKey) {
       setDecryptedMessage('[Invalid cipher code]');
@@ -476,12 +104,19 @@ React.useEffect(() => {
   };
 
   const exportToPDF = async () => {
+    // Create canvas with extra space for numbers
     const canvas = document.createElement('canvas');
     const cellSize = 8;
-    canvas.width = gridSize.cols * cellSize;
-    canvas.height = gridSize.rows * cellSize;
+    const numberSpace = 20;
+    canvas.width = gridSize.cols * cellSize + numberSpace;
+    canvas.height = gridSize.rows * cellSize + numberSpace;
     const ctx = canvas.getContext('2d');
     
+    // Fill background
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Draw the grid
     for (let row = 0; row < gridSize.rows; row++) {
       for (let col = 0; col < gridSize.cols; col++) {
         const bit = chart[row][col];
@@ -494,9 +129,24 @@ React.useEffect(() => {
       }
     }
     
+    // Add row numbers on the right
+    ctx.fillStyle = '#000000';
+    ctx.font = 'bold 10px Arial';
+    ctx.textAlign = 'left';
+    for (let row = 0; row < gridSize.rows; row++) {
+      ctx.fillText((gridSize.rows - row).toString(), gridSize.cols * cellSize + 4, row * cellSize + cellSize / 2 + 3);
+    }
+    
+    // Add column numbers at the bottom (every 5th + stitch 1)
+// Add column numbers at the bottom
+    ctx.textAlign = 'center';
+    for (let col = 0; col < gridSize.cols; col++) {
+      const stitchNumber = gridSize.cols - col;
+      ctx.fillText(stitchNumber.toString(), col * cellSize + cellSize / 2, gridSize.rows * cellSize + 12);
+    }
+    
     const imageData = canvas.toDataURL('image/png');
     
-    // Generate QR code for cipher code
     let qrCodeDataURL = '';
     try {
       const qrURL = `https://crypto-knit.vercel.app/?decrypt=${algorithms[algorithm].code}`;
@@ -673,11 +323,11 @@ React.useEffect(() => {
           
           <div class="decrypt-info">
             <h3>🔓 How to Decrypt:</h3>
-            <p>1. Manually convert your ${craftType === 'knitting' ? 'knitted' : 'crocheted'} piece back to binary (0s and 1s)</p>
-            <p>2. Use the "Decrypt" tab in the app</p>
-            <p>3. Paste the binary string above</p>
-            <p>4. Enter cipher code <strong>${algorithms[algorithm].code}</strong> (or scan the QR code)</p>
-            <p>5. Click "Decrypt Message"</p>
+            <p>1. Scan the QR code above (opens decrypt screen with cipher code pre-filled)</p>
+            <p>2. Manually convert your ${craftType === 'knitting' ? 'knitted' : 'crocheted'} piece back to binary (0s and 1s)</p>
+            <p>3. Paste the binary string into the app</p>
+            <p>4. Click "Decrypt Message"</p>
+            <p style="margin-top: 10px;"><em>Or manually enter cipher code: <strong>${algorithms[algorithm].code}</strong></em></p>
           </div>
           <script>
             window.onload = () => {
@@ -691,7 +341,7 @@ React.useEffect(() => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-200 via-purple-300 to-pink-300 p-8">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-400 via-purple-400 to-pink-400 p-8">
       <div className="max-w-6xl mx-auto">
         <div className="bg-purple-100 rounded-2xl shadow-2xl p-8 mb-8">
           <div className="text-center mb-4">
@@ -726,7 +376,7 @@ React.useEffect(() => {
                       <li>Type your secret message in the text box</li>
                       <li>Choose an encryption algorithm from the dropdown</li>
                       <li>Select your craft direction (Flat or In the Round)</li>
-                      <li>Choose pattern size (Single iteration for exact size, or Repeated for 100×100 or larger grid)</li>
+                      <li>Choose pattern size (Single iteration for exact size, or Repeated for 100×100 grid)</li>
                       <li>Click "Encrypt & Generate Chart"</li>
                       <li>Save your Cipher Code (displayed in blue box)</li>
                       <li>Click "Export to PDF" to print your chart</li>
@@ -930,8 +580,8 @@ React.useEffect(() => {
             <div className="space-y-6">
               <div className="p-4 bg-blue-50 border-2 border-blue-300 rounded-lg">
                 <p className="text-sm text-blue-800">
-                  <strong>How to decrypt:</strong> Convert your {craftType === 'knitting' ? 'knitted' : 'crocheted'} chart back to binary (0=white/{craftType === 'knitting' ? 'knit' : 'sc'}, 1=black/{craftType === 'knitting' ? 'purl' : 'dc'}), 
-                  paste the binary string below, enter the cipher code from your PDF (or scan the QR code), and click decrypt.
+                  <strong>How to decrypt:</strong> If you have a QR code, scan it first (which opens this page with cipher code pre-filled). You can also manually enter the cipher code from your PDF. Then convert your {craftType === 'knitting' ? 'knitted' : 'crocheted'} chart or piece back to binary (0=white/{craftType === 'knitting' ? 'knit' : 'sc'}, 1=black/{craftType === 'knitting' ? 'purl' : 'dc'}), 
+                  paste the binary string below, and click decrypt.
                 </p>
               </div>
 
@@ -1127,19 +777,86 @@ React.useEffect(() => {
               )}
             </div>
             
-            <div className="border-4 border-gray-800 inline-block overflow-auto max-w-full">
-              <div className="grid gap-0" style={{ gridTemplateColumns: `repeat(${gridSize.cols}, 6px)` }}>
-                {chart.map((row, i) => (
-                  row.map((cell, j) => (
-                    <div
-                      key={`${i}-${j}`}
-                      className={`w-[6px] h-[6px] ${cell === '1' ? 'bg-black' : 'bg-white'} border border-gray-200`}
-                      title={`Row ${i + 1}, Stitch ${j + 1}: ${cell === '1' ? (craftType === 'knitting' ? 'Purl' : 'DC') : (craftType === 'knitting' ? 'Knit' : 'SC')}`}
-                    />
-                  ))
-                ))}
-              </div>
+            <div 
+              className="inline-block cursor-pointer"
+              onClick={() => {
+                const modal = document.createElement('div');
+                modal.className = 'fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4';
+                modal.onclick = () => modal.remove();
+                
+                // Dynamic cell sizing for modal
+                const maxDimension = Math.max(gridSize.cols, gridSize.rows);
+                const modalCellSize = maxDimension <= 20 ? 32 : maxDimension <= 30 ? 24 : maxDimension <= 50 ? 16 : maxDimension <= 100 ? 10 : 6;
+                const modalFontSize = modalCellSize >= 16 ? 12 : modalCellSize >= 10 ? 10 : 8;
+                
+                const chartClone = document.createElement('div');
+                chartClone.className = 'bg-white p-4 rounded max-h-[90vh] overflow-auto';
+                chartClone.innerHTML = `
+                  <div style="display: inline-block; position: relative; padding: 25px 25px 20px 25px;">
+                    <div style="display: grid; grid-template-columns: repeat(${gridSize.cols}, ${modalCellSize}px); gap: 0; border: 3px solid #000;">
+                      ${chart.map(row => row.map(cell => 
+                        `<div style="width: ${modalCellSize}px; height: ${modalCellSize}px; background: ${cell === '1' ? '#000' : '#fff'}; border: 0.5px solid #ddd;"></div>`
+                      ).join('')).join('')}
+                    </div>
+                    <div style="position: absolute; right: 0; top: 25px; display: flex; flex-direction: column; font-size: ${modalFontSize}px; font-weight: bold; padding-left: 4px;">
+                      ${Array.from({length: gridSize.rows}, (_, i) => `<div style="height: ${modalCellSize}px; display: flex; align-items: center;">${gridSize.rows - i}</div>`).join('')}
+                    </div>
+                    <div style="position: absolute; bottom: 0; left: 25px; display: flex; font-size: ${modalFontSize}px; font-weight: bold; padding-top: 2px;">
+                      ${Array.from({length: gridSize.cols}, (_, i) => {
+                        const stitchNumber = gridSize.cols - i;
+                        return `<div style="width: ${modalCellSize}px; text-align: center;">${stitchNumber}</div>`;
+                      }).join('')}
+                    </div>
+                  </div>
+                `;
+                modal.appendChild(chartClone);
+                document.body.appendChild(modal);
+              }}
+            >
+              {(() => {
+                  // Dynamic cell sizing for preview
+                  const maxDimension = Math.max(gridSize.cols, gridSize.rows);
+                  const previewCellSize = maxDimension <= 20 ? 20 : maxDimension <= 30 ? 16 : maxDimension <= 50 ? 12 : maxDimension <= 100 ? 8 : 5;
+                  const previewFontSize = previewCellSize >= 12 ? 10 : previewCellSize >= 8 ? 8 : 7;
+                  const previewPadding = previewCellSize >= 12 ? 35 : 30;
+                  
+                  return (
+                    <div style={{ display: 'inline-block', position: 'relative', padding: `0 ${previewPadding}px 25px 0` }}>
+                      <div className="border-4 border-gray-800" style={{ display: 'grid', gridTemplateColumns: `repeat(${gridSize.cols}, ${previewCellSize}px)`, gap: 0 }}>
+                        {chart.map((row, i) => (
+                          row.map((cell, j) => (
+                            <div
+                              key={`${i}-${j}`}
+                              style={{ width: `${previewCellSize}px`, height: `${previewCellSize}px` }}
+                              className={`${cell === '1' ? 'bg-black' : 'bg-white'} border border-gray-200`}
+                              title={`Row ${gridSize.rows - i}, Stitch ${gridSize.cols - j}: ${cell === '1' ? (craftType === 'knitting' ? 'Purl' : 'DC') : (craftType === 'knitting' ? 'Knit' : 'SC')}`}
+                            />
+                          ))
+                        ))}
+                      </div>
+                      <div style={{ position: 'absolute', right: '5px', top: 0, display: 'flex', flexDirection: 'column', fontSize: `${previewFontSize}px`, fontWeight: 'bold' }}>
+                        {Array.from({length: gridSize.rows}, (_, i) => (
+                          <div key={i} style={{ height: `${previewCellSize}px`, display: 'flex', alignItems: 'center' }}>
+                            {gridSize.rows - i}
+                          </div>
+                        ))}
+                      </div>
+                      <div style={{ position: 'absolute', bottom: '0', left: 0, display: 'flex', fontSize: `${previewFontSize}px`, fontWeight: 'bold', paddingTop: '2px' }}>
+                        {Array.from({length: gridSize.cols}, (_, i) => {
+                          const stitchNumber = gridSize.cols - i;
+                          return (
+                            <div key={i} style={{ width: `${previewCellSize}px`, textAlign: 'center' }}>
+                              {stitchNumber}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })()}
             </div>
+            
+            <p className="text-xs text-gray-600 mt-2 italic">Click chart to view larger</p>
             
             <div className="mt-6 p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
               <h3 className="font-bold text-blue-900 mb-2">{craftType === 'knitting' ? 'Knitting' : 'Crochet'} Instructions</h3>
