@@ -390,27 +390,27 @@ const KnittingChart = () => {
                   <div>
                     <h4 className="font-bold text-gray-900 mb-1">Encrypting a Message:</h4>
                     <ol className="list-decimal ml-5 space-y-1">
-                      <li>Choose between Knitting or Crochet mode</li>
-                      <li>Select the Encrypt tab</li>
-                      <li>Type your secret message in the text box</li>
-                      <li>Choose an encryption algorithm from the dropdown</li>
-                      <li>Select your craft direction (Flat or In the Round)</li>
-                      <li>Choose pattern size (Single iteration for exact size, or Repeated for 100×100 grid)</li>
-                      <li>Click "Encrypt & Generate Chart"</li>
-                      <li>Save your Cipher Code (displayed in blue box)</li>
-                      <li>Click "Export to PDF" to print your chart</li>
+                      <li>Choose between Knitting or Crochet mode.</li>
+                      <li>Select the Encrypt tab.</li>
+                      <li>Type your secret message in the text box.</li>
+                      <li>Choose an encryption algorithm from the dropdown.</li>
+                      <li>Select your craft direction (Flat or In the Round).</li>
+                      <li>Choose pattern size (Single iteration for exact size, or Repeated for 100×100 grid).</li>
+                      <li>Click "Encrypt & Generate Chart".</li>
+                      <li>Save your Cipher Code (displayed in blue box).</li>
+                      <li>Click "Export to PDF" to print your chart.</li>
                     </ol>
                   </div>
                   
                   <div>
                     <h4 className="font-bold text-gray-900 mb-1">Decrypting a Message:</h4>
                     <ol className="list-decimal ml-5 space-y-1">
-                      <li>Select the Decrypt tab</li>
-                      <li><strong>If you have a QR code:</strong> Scan it first (this will open the decrypt screen with the cipher code pre-filled)</li>
-                      <li>Convert your finished craft piece back to binary (0s and 1s) by reading the chart</li>
-                      <li>Paste the binary string into the text box</li>
-                      <li><strong>If you don't have a QR code:</strong> Manually enter the Cipher Code from your PDF</li>
-                      <li>Click "Decrypt Message" to reveal the original text</li>
+                      <li>Select the Decrypt tab.</li>
+                      <li><strong>If you have a QR code:</strong> Scan it first (this will open the decrypt screen with the cipher code pre-filled).</li>
+                      <li>Convert your finished craft piece back to binary (0s and 1s) by reading the chart.</li>
+                      <li>Paste the binary string into the text box.</li>
+                      <li><strong>If you don't have a QR code:</strong> Manually enter the Cipher Code from your PDF.</li>
+                      <li>Click "Decrypt Message" to reveal the original text.</li>
                     </ol>
                   </div>
                   
