@@ -418,7 +418,7 @@ const KnittingChart = () => {
                     <p className="font-semibold text-yellow-900 mb-1">⚠️ Important Note:</p>
                     <p className="text-yellow-800 text-xs">
                       Some encryption methods modify messages during the process. For example, Playfair Cipher removes spaces and special characters, 
-                      converts to uppercase, and may add padding. A message like "very nice!" might decrypt as "VERYNICEX". 
+                      converts to uppercase, and may add padding. A message like "Hello!" might decrypt as "HELXOX". 
                       This is normal behavior for these historical ciphers and not an error.
                     </p>
                   </div>
