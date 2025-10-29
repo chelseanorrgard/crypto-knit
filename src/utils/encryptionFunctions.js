@@ -153,3 +153,181 @@ export const encryptAutokey = (text, key='KEY') => {
   }
   return result;
 };
+
+// NEW MODERN ENCRYPTION METHODS
+
+export const encryptAES = (text, key = 'CRYPTOKEY2024') => {
+  // Simplified AES-like encryption for educational purposes
+  // Uses multiple rounds of substitution and permutation
+  const expandKey = (k) => {
+    let expanded = k;
+    while (expanded.length < 32) {
+      expanded += k;
+    }
+    return expanded.slice(0, 32);
+  };
+  
+  const expandedKey = expandKey(key);
+  let result = '';
+  
+  for (let i = 0; i < text.length; i++) {
+    let charCode = text.charCodeAt(i);
+    // Round 1: XOR with key
+    charCode ^= expandedKey.charCodeAt(i % expandedKey.length);
+    // Round 2: Byte substitution (S-box simulation)
+    charCode = ((charCode * 7 + 13) % 256);
+    // Round 3: XOR with rotated key
+    charCode ^= expandedKey.charCodeAt((i + 8) % expandedKey.length);
+    result += String.fromCharCode(charCode);
+  }
+  
+  const utf8Bytes = new TextEncoder().encode(result);
+  const binary = Array.from(utf8Bytes).map(b => String.fromCharCode(b)).join('');
+  return btoa(binary);
+};
+
+export const encryptDES = (text, key = 'DES8BYTE') => {
+  // Simplified DES-like encryption (educational version)
+  // Uses permutation and substitution boxes
+  const expandKey = (k) => {
+    while (k.length < 8) k += k;
+    return k.slice(0, 8);
+  };
+  
+  const key8 = expandKey(key);
+  let result = '';
+  
+  // Process in 8-byte blocks
+  for (let i = 0; i < text.length; i++) {
+    let charCode = text.charCodeAt(i);
+    const keyByte = key8.charCodeAt(i % 8);
+    
+    // Initial permutation
+    charCode = ((charCode << 1) | (charCode >> 7)) & 0xFF;
+    // XOR with key
+    charCode ^= keyByte;
+    // S-box substitution
+    charCode = ((charCode * 3 + 7) % 256);
+    // Final permutation
+    charCode = ((charCode << 3) | (charCode >> 5)) & 0xFF;
+    
+    result += String.fromCharCode(charCode);
+  }
+  
+  const utf8Bytes = new TextEncoder().encode(result);
+  const binary = Array.from(utf8Bytes).map(b => String.fromCharCode(b)).join('');
+  return btoa(binary);
+};
+
+export const encryptBlowfish = (text, key = 'BLOWFISH') => {
+  // Simplified Blowfish-like encryption
+  // Uses key-dependent S-boxes
+  const generateSBox = (k) => {
+    let sbox = [];
+    for (let i = 0; i < 256; i++) {
+      sbox[i] = (i * k.charCodeAt(i % k.length)) % 256;
+    }
+    return sbox;
+  };
+  
+  const sbox = generateSBox(key);
+  let result = '';
+  
+  for (let i = 0; i < text.length; i++) {
+    let charCode = text.charCodeAt(i);
+    const keyByte = key.charCodeAt(i % key.length);
+    
+    // Feistel network simulation
+    const left = charCode >> 4;
+    const right = charCode & 0x0F;
+    
+    // Round 1
+    const f1 = sbox[(left + keyByte) % 256];
+    const newRight = left ^ (f1 >> 4);
+    
+    // Round 2
+    const f2 = sbox[(right + keyByte) % 256];
+    const newLeft = right ^ (f2 >> 4);
+    
+    charCode = ((newLeft << 4) | newRight) ^ keyByte;
+    result += String.fromCharCode(charCode);
+  }
+  
+  const utf8Bytes = new TextEncoder().encode(result);
+  const binary = Array.from(utf8Bytes).map(b => String.fromCharCode(b)).join('');
+  return btoa(binary);
+};
+
+export const encryptChaCha20 = (text, key = 'CHACHA20KEY') => {
+  // Simplified ChaCha20-like stream cipher
+  // Uses quarter-round operations
+  const expandKey = (k) => {
+    let expanded = k;
+    while (expanded.length < 32) {
+      expanded += k;
+    }
+    return expanded.slice(0, 32);
+  };
+  
+  const expandedKey = expandKey(key);
+  let result = '';
+  
+  // Generate keystream
+  for (let i = 0; i < text.length; i++) {
+    let charCode = text.charCodeAt(i);
+    
+    // Quarter round simulation
+    let a = expandedKey.charCodeAt(i % 32);
+    let b = expandedKey.charCodeAt((i + 8) % 32);
+    let c = expandedKey.charCodeAt((i + 16) % 32);
+    let d = i % 256;
+    
+    // ChaCha quarter-round operations (simplified)
+    a = (a + b) % 256; d ^= a; d = ((d << 4) | (d >> 4)) & 0xFF;
+    c = (c + d) % 256; b ^= c; b = ((b << 3) | (b >> 5)) & 0xFF;
+    a = (a + b) % 256; d ^= a; d = ((d << 2) | (d >> 6)) & 0xFF;
+    
+    charCode ^= d;
+    result += String.fromCharCode(charCode);
+  }
+  
+  const utf8Bytes = new TextEncoder().encode(result);
+  const binary = Array.from(utf8Bytes).map(b => String.fromCharCode(b)).join('');
+  return btoa(binary);
+};
+
+export const encryptRC4 = (text, key = 'RC4KEY') => {
+  // Simplified RC4 stream cipher
+  // Uses key scheduling algorithm (KSA) and pseudo-random generation algorithm (PRGA)
+  
+  // Key Scheduling Algorithm
+  const ksa = (k) => {
+    const S = Array.from({ length: 256 }, (_, i) => i);
+    let j = 0;
+    
+    for (let i = 0; i < 256; i++) {
+      j = (j + S[i] + k.charCodeAt(i % k.length)) % 256;
+      [S[i], S[j]] = [S[j], S[i]]; // Swap
+    }
+    return S;
+  };
+  
+  const S = ksa(key);
+  let result = '';
+  let i = 0, j = 0;
+  
+  // Pseudo-Random Generation Algorithm
+  for (let idx = 0; idx < text.length; idx++) {
+    i = (i + 1) % 256;
+    j = (j + S[i]) % 256;
+    [S[i], S[j]] = [S[j], S[i]]; // Swap
+    
+    const K = S[(S[i] + S[j]) % 256];
+    const charCode = text.charCodeAt(idx) ^ K;
+    result += String.fromCharCode(charCode);
+  }
+  
+  const utf8Bytes = new TextEncoder().encode(result);
+  const binary = Array.from(utf8Bytes).map(b => String.fromCharCode(b)).join('');
+  return btoa(binary);
+};

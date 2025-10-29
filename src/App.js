@@ -415,12 +415,19 @@ const KnittingChart = () => {
                   </div>
                   
                   <div className="p-3 bg-yellow-50 border-2 border-yellow-300 rounded">
-                    <p className="font-semibold text-yellow-900 mb-1">⚠️ Important Note:</p>
-                    <p className="text-yellow-800 text-xs">
-                      Some encryption methods modify messages during the process. For example, Playfair Cipher removes spaces and special characters, 
-                      converts to uppercase, and may add padding. A message like "Hello!" might decrypt as "HELXOX". 
-                      This is normal behavior for these historical ciphers and not an error.
-                    </p>
+                    <p className="font-semibold text-yellow-900 mb-1">⚠️ Important Notes:</p>
+                    <div className="text-yellow-800 text-xs space-y-1">
+                      <p>
+                        <strong>Historical Ciphers:</strong> Some encryption methods modify messages during the process. 
+                        For example, Playfair Cipher removes spaces and special characters, converts to uppercase, and may add padding. 
+                        A message like "Hello!" might decrypt as "HELXOX". This is normal behavior for these historical ciphers.
+                      </p>
+                      <p>
+                        <strong>Modern Ciphers (C14-C18):</strong> AES, DES, Blowfish, ChaCha20, and RC4 are simplified educational 
+                        implementations demonstrating cryptographic concepts. They preserve the original message format but are not 
+                        suitable for real-world security purposes.
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>

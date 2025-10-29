@@ -152,3 +152,202 @@ export const decryptAutokey = (text, key='KEY') => {
   }
   return result;
 };
+
+// NEW MODERN DECRYPTION METHODS
+
+export const decryptAES = (text, key = 'CRYPTOKEY2024') => {
+  try {
+    const decoded = atob(text);
+    const bytes = new Uint8Array(decoded.split('').map(c => c.charCodeAt(0)));
+    const encrypted = new TextDecoder().decode(bytes);
+    
+    const expandKey = (k) => {
+      let expanded = k;
+      while (expanded.length < 32) {
+        expanded += k;
+      }
+      return expanded.slice(0, 32);
+    };
+    
+    const expandedKey = expandKey(key);
+    let result = '';
+    
+    for (let i = 0; i < encrypted.length; i++) {
+      let charCode = encrypted.charCodeAt(i);
+      // Reverse Round 3: XOR with rotated key
+      charCode ^= expandedKey.charCodeAt((i + 8) % expandedKey.length);
+      // Reverse Round 2: Inverse byte substitution
+      // Find inverse of: charCode = ((original * 7 + 13) % 256)
+      for (let original = 0; original < 256; original++) {
+        if (((original * 7 + 13) % 256) === charCode) {
+          charCode = original;
+          break;
+        }
+      }
+      // Reverse Round 1: XOR with key
+      charCode ^= expandedKey.charCodeAt(i % expandedKey.length);
+      result += String.fromCharCode(charCode);
+    }
+    
+    return result;
+  } catch { return '[Decryption failed]'; }
+};
+
+export const decryptDES = (text, key = 'DES8BYTE') => {
+  try {
+    const decoded = atob(text);
+    const bytes = new Uint8Array(decoded.split('').map(c => c.charCodeAt(0)));
+    const encrypted = new TextDecoder().decode(bytes);
+    
+    const expandKey = (k) => {
+      while (k.length < 8) k += k;
+      return k.slice(0, 8);
+    };
+    
+    const key8 = expandKey(key);
+    let result = '';
+    
+    for (let i = 0; i < encrypted.length; i++) {
+      let charCode = encrypted.charCodeAt(i);
+      const keyByte = key8.charCodeAt(i % 8);
+      
+      // Reverse final permutation
+      charCode = ((charCode << 5) | (charCode >> 3)) & 0xFF;
+      // Reverse S-box substitution
+      for (let original = 0; original < 256; original++) {
+        if (((original * 3 + 7) % 256) === charCode) {
+          charCode = original;
+          break;
+        }
+      }
+      // Reverse XOR with key
+      charCode ^= keyByte;
+      // Reverse initial permutation
+      charCode = ((charCode << 7) | (charCode >> 1)) & 0xFF;
+      
+      result += String.fromCharCode(charCode);
+    }
+    
+    return result;
+  } catch { return '[Decryption failed]'; }
+};
+
+export const decryptBlowfish = (text, key = 'BLOWFISH') => {
+  try {
+    const decoded = atob(text);
+    const bytes = new Uint8Array(decoded.split('').map(c => c.charCodeAt(0)));
+    const encrypted = new TextDecoder().decode(bytes);
+    
+    const generateSBox = (k) => {
+      let sbox = [];
+      for (let i = 0; i < 256; i++) {
+        sbox[i] = (i * k.charCodeAt(i % k.length)) % 256;
+      }
+      return sbox;
+    };
+    
+    const sbox = generateSBox(key);
+    let result = '';
+    
+    for (let i = 0; i < encrypted.length; i++) {
+      let charCode = encrypted.charCodeAt(i);
+      const keyByte = key.charCodeAt(i % key.length);
+      
+      charCode ^= keyByte;
+      
+      // Reverse Feistel network
+      const left = charCode >> 4;
+      const right = charCode & 0x0F;
+      
+      // Reverse Round 2
+      const f2 = sbox[(right + keyByte) % 256];
+      const origRight = left ^ (f2 >> 4);
+      
+      // Reverse Round 1
+      const f1 = sbox[(origRight + keyByte) % 256];
+      const origLeft = right ^ (f1 >> 4);
+      
+      charCode = (origLeft << 4) | origRight;
+      result += String.fromCharCode(charCode);
+    }
+    
+    return result;
+  } catch { return '[Decryption failed]'; }
+};
+
+export const decryptChaCha20 = (text, key = 'CHACHA20KEY') => {
+  try {
+    const decoded = atob(text);
+    const bytes = new Uint8Array(decoded.split('').map(c => c.charCodeAt(0)));
+    const encrypted = new TextDecoder().decode(bytes);
+    
+    const expandKey = (k) => {
+      let expanded = k;
+      while (expanded.length < 32) {
+        expanded += k;
+      }
+      return expanded.slice(0, 32);
+    };
+    
+    const expandedKey = expandKey(key);
+    let result = '';
+    
+    // Stream cipher - decryption is same as encryption
+    for (let i = 0; i < encrypted.length; i++) {
+      let charCode = encrypted.charCodeAt(i);
+      
+      // Generate same keystream
+      let a = expandedKey.charCodeAt(i % 32);
+      let b = expandedKey.charCodeAt((i + 8) % 32);
+      let c = expandedKey.charCodeAt((i + 16) % 32);
+      let d = i % 256;
+      
+      // ChaCha quarter-round operations (same as encryption)
+      a = (a + b) % 256; d ^= a; d = ((d << 4) | (d >> 4)) & 0xFF;
+      c = (c + d) % 256; b ^= c; b = ((b << 3) | (b >> 5)) & 0xFF;
+      a = (a + b) % 256; d ^= a; d = ((d << 2) | (d >> 6)) & 0xFF;
+      
+      charCode ^= d;
+      result += String.fromCharCode(charCode);
+    }
+    
+    return result;
+  } catch { return '[Decryption failed]'; }
+};
+
+export const decryptRC4 = (text, key = 'RC4KEY') => {
+  try {
+    const decoded = atob(text);
+    const bytes = new Uint8Array(decoded.split('').map(c => c.charCodeAt(0)));
+    const encrypted = new TextDecoder().decode(bytes);
+    
+    // Key Scheduling Algorithm (same as encryption)
+    const ksa = (k) => {
+      const S = Array.from({ length: 256 }, (_, i) => i);
+      let j = 0;
+      
+      for (let i = 0; i < 256; i++) {
+        j = (j + S[i] + k.charCodeAt(i % k.length)) % 256;
+        [S[i], S[j]] = [S[j], S[i]];
+      }
+      return S;
+    };
+    
+    const S = ksa(key);
+    let result = '';
+    let i = 0, j = 0;
+    
+    // PRGA - stream cipher so decryption is same as encryption
+    for (let idx = 0; idx < encrypted.length; idx++) {
+      i = (i + 1) % 256;
+      j = (j + S[i]) % 256;
+      [S[i], S[j]] = [S[j], S[i]];
+      
+      const K = S[(S[i] + S[j]) % 256];
+      const charCode = encrypted.charCodeAt(idx) ^ K;
+      result += String.fromCharCode(charCode);
+    }
+    
+    return result;
+  } catch { return '[Decryption failed]'; }
+};

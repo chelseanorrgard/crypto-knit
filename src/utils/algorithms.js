@@ -92,5 +92,41 @@ export const algorithms = {
     encrypt: encrypt.encryptAutokey, 
     decrypt: decrypt.decryptAutokey,
     description: 'Like Vigenère but uses the message itself (after the key) as the key. More secure.' 
+  },
+  // NEW MODERN ENCRYPTION ALGORITHMS
+  aes: {
+    name: 'AES (Advanced Encryption Standard)',
+    code: 'C14',
+    encrypt: encrypt.encryptAES,
+    decrypt: decrypt.decryptAES,
+    description: 'Modern symmetric encryption standard used worldwide. Uses substitution-permutation network with multiple rounds. Simplified educational version.'
+  },
+  des: {
+    name: 'DES (Data Encryption Standard)',
+    code: 'C15',
+    encrypt: encrypt.encryptDES,
+    decrypt: decrypt.decryptDES,
+    description: 'Classic block cipher using Feistel network structure. Was the federal standard from 1977-2005. Simplified educational version.'
+  },
+  blowfish: {
+    name: 'Blowfish Cipher',
+    code: 'C16',
+    encrypt: encrypt.encryptBlowfish,
+    decrypt: decrypt.decryptBlowfish,
+    description: 'Fast block cipher using key-dependent S-boxes and Feistel network. Designed by Bruce Schneier in 1993. Simplified version.'
+  },
+  chacha20: {
+    name: 'ChaCha20',
+    code: 'C17',
+    encrypt: encrypt.encryptChaCha20,
+    decrypt: decrypt.decryptChaCha20,
+    description: 'Modern stream cipher using ARX operations (Add-Rotate-XOR). Fast and secure, used in TLS. Simplified educational version.'
+  },
+  rc4: {
+    name: 'RC4 Stream Cipher',
+    code: 'C18',
+    encrypt: encrypt.encryptRC4,
+    decrypt: decrypt.decryptRC4,
+    description: 'Variable-key-size stream cipher. Simple and fast, historically used in SSL/TLS and WEP. Simplified educational implementation.'
   }
 };
