@@ -253,21 +253,23 @@ export const decryptBlowfish = (text, key = 'BLOWFISH') => {
       let charCode = encrypted.charCodeAt(i);
       const keyByte = key.charCodeAt(i % key.length);
       
+      // Reverse the final XOR
       charCode ^= keyByte;
       
-      // Reverse Feistel network
-      const left = charCode >> 4;
-      const right = charCode & 0x0F;
+      // Extract left and right from encrypted value
+      let left = charCode >> 4;
+      let right = charCode & 0x0F;
       
-      // Reverse Round 2
-      const f2 = sbox[(right + keyByte) % 256];
-      const origRight = left ^ (f2 >> 4);
+      // Reverse Round 2 (was: right = right ^ (f2 & 0x0F))
+      const f2 = sbox[(left + keyByte) % 256];
+      right = right ^ (f2 & 0x0F);
       
-      // Reverse Round 1
-      const f1 = sbox[(origRight + keyByte) % 256];
-      const origLeft = right ^ (f1 >> 4);
+      // Reverse Round 1 (was: left = left ^ (f1 & 0x0F))
+      const f1 = sbox[(right + keyByte) % 256];
+      left = left ^ (f1 & 0x0F);
       
-      charCode = (origLeft << 4) | origRight;
+      // Reconstruct original character
+      charCode = (left << 4) | right;
       result += String.fromCharCode(charCode);
     }
     

@@ -238,18 +238,18 @@ export const encryptBlowfish = (text, key = 'BLOWFISH') => {
     const keyByte = key.charCodeAt(i % key.length);
     
     // Feistel network simulation
-    const left = charCode >> 4;
-    const right = charCode & 0x0F;
+    let left = charCode >> 4;
+    let right = charCode & 0x0F;
     
     // Round 1
-    const f1 = sbox[(left + keyByte) % 256];
-    const newRight = left ^ (f1 >> 4);
+    const f1 = sbox[(right + keyByte) % 256];
+    left = left ^ (f1 & 0x0F);
     
     // Round 2
-    const f2 = sbox[(right + keyByte) % 256];
-    const newLeft = right ^ (f2 >> 4);
+    const f2 = sbox[(left + keyByte) % 256];
+    right = right ^ (f2 & 0x0F);
     
-    charCode = ((newLeft << 4) | newRight) ^ keyByte;
+    charCode = ((left << 4) | right) ^ keyByte;
     result += String.fromCharCode(charCode);
   }
   
