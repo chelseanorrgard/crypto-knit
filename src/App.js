@@ -295,6 +295,27 @@ const KnittingChart = () => {
             @media print {
               body { padding: 10px; }
             }
+            .transformation-section {
+              margin: 20px 0;
+              padding: 15px;
+              background: #f3e8ff;
+              border: 2px solid #a78bfa;
+              border-radius: 8px;
+            }
+            .transformation-section h3 {
+              margin-top: 0;
+              font-size: 16px;
+              color: #6b21a8;
+            }
+            .transformation-section ol {
+              margin: 10px 0 0 20px;
+              padding: 0;
+            }
+            .transformation-section li {
+              margin: 5px 0;
+              font-size: 13px;
+              color: #4c1d95;
+            }
           </style>
         </head>
         <body>
@@ -306,6 +327,13 @@ const KnittingChart = () => {
             <p><strong>Pattern Type:</strong> ${repeatPattern ? 'Repeated Pattern' : 'Single Iteration'}</p>
             <p><strong>Binary Length:</strong> ${binary.length} bits</p>
             <p><strong>${craftType === 'knitting' ? 'Knitting' : 'Crochet'} Direction:</strong> ${knittingDirection === 'flat' ? 'Flat (RS/WS)' : 'In the Round'}</p>
+          </div>
+
+          <div class="transformation-section">
+            <h3>🔄 How Your Message Was Transformed:</h3>
+            <ol>
+              ${algorithms[algorithm].transformation(message, encrypted).map(step => `<li>${step}</li>`).join('')}
+            </ol>
           </div>
           
           <div class="cipher-code-section">
@@ -595,6 +623,17 @@ const KnittingChart = () => {
                     <p className="text-2xl font-bold text-blue-900">{algorithms[algorithm].code}</p>
                     <p className="text-xs text-blue-800 mt-1">Save this code - you'll need it to decrypt!</p>
                   </div>
+
+                  {/* NEW: Transformation explanation */}
+                <div className="mb-4 p-3 bg-purple-50 border-2 border-purple-300 rounded-lg">
+                  <p className="text-sm font-semibold text-purple-900 mb-2">🔄 How Your Message Was Transformed:</p>
+                  <ol className="text-xs text-purple-800 space-y-1 ml-4 list-decimal">
+                    {algorithms[algorithm].transformation(message, encrypted).map((step, idx) => (
+                      <li key={idx}>{step}</li>
+                    ))}
+                  </ol>
+                </div>
+
                   <p className="text-sm text-gray-600 mb-1">Encrypted Text:</p>
                   <p className="font-mono text-sm break-all">{encrypted}</p>
                   <p className="text-sm text-gray-600 mt-3 mb-1">Binary ({binary.length} bits):</p>
