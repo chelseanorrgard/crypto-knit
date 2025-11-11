@@ -96,7 +96,8 @@ Whether you're protecting state secrets or passive-aggressively crafting a sweat
 ## 🐑 Contribute?
 
 If you:  
-- Knit  
+- Knit
+- Crochet  
 - Code  
 - Encrypt  
 - Or panic-knit during deadlines  
