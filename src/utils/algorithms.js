@@ -7,7 +7,7 @@ export const algorithms = {
     code: 'C1', 
     encrypt: encrypt.encryptCaesar, 
     decrypt: decrypt.decryptCaesar, 
-    description: 'Shifts each letter by a fixed number of positions in the alphabet (default 3). Simple but historically significant.',
+    description: 'Moves each letter forward by 3 spots in the alphabet. Named after Julius Caesar who used it to send secret military messages. Simple to understand but easy to crack!',
     transformation: (original, encrypted) => [
       `Your original message: "${original}"`,
       `We moved each letter 3 spots forward in the alphabet`,
@@ -20,7 +20,7 @@ export const algorithms = {
     code: 'C2', 
     encrypt: encrypt.encryptXOR, 
     decrypt: decrypt.decryptXOR,
-    description: 'Uses XOR operation with a secret key. Each character is combined with the key using bitwise XOR.',
+    description: 'Mixes your message with a secret word using computer math. Each letter gets scrambled based on the secret word, making it harder to crack than simple letter shifting.',
     transformation: (original, encrypted) => [
       `Your original message: "${original}"`,
       `We mixed it with the secret word "SECRET"`,
@@ -34,7 +34,7 @@ export const algorithms = {
     code: 'C3', 
     encrypt: encrypt.encryptVigenere, 
     decrypt: decrypt.decryptVigenere,
-    description: 'Uses a keyword to shift letters by different amounts. More secure than Caesar cipher.',
+    description: 'Like Caesar cipher, but uses a keyword so each letter shifts by a different amount. This changing pattern makes it much trickier to decode!',
     transformation: (original, encrypted) => [
       `Your original message: "${original}"`,
       `We used the keyword "KEY" (repeating: K-E-Y-K-E-Y...)`,
@@ -48,7 +48,7 @@ export const algorithms = {
     code: 'C4', 
     encrypt: encrypt.encryptROT13, 
     decrypt: decrypt.decryptROT13,
-    description: 'Special case of Caesar cipher with a shift of 13. Applying it twice returns the original text.',
+    description: 'Shifts each letter exactly 13 places in the alphabet. Fun trick: doing it twice gets you back to the original message! Often used to hide spoilers online.',
     transformation: (original, encrypted) => [
       `Your original message: "${original}"`,
       `We moved each letter exactly 13 spots in the alphabet`,
@@ -62,7 +62,7 @@ export const algorithms = {
     code: 'C5', 
     encrypt: encrypt.encryptAtbash, 
     decrypt: decrypt.decryptAtbash,
-    description: 'Reverses the alphabet (A↔Z, B↔Y, etc.). Ancient Hebrew cipher.',
+    description: 'Flips the alphabet backwards - A becomes Z, B becomes Y, and so on. One of the oldest ciphers ever, used in ancient Hebrew texts over 2,000 years ago!',
     transformation: (original, encrypted) => [
       `Your original message: "${original}"`,
       `We swapped each letter with its opposite (A→Z, B→Y, C→X)`,
@@ -76,7 +76,7 @@ export const algorithms = {
     code: 'C6', 
     encrypt: encrypt.encryptReverse, 
     decrypt: decrypt.decryptReverse,
-    description: 'Simply reverses the entire message. Very simple obfuscation method.',
+    description: 'The simplest method - just writes your message backwards! Great for quick hiding, though anyone can read it with a mirror. Sometimes simple is sneaky!',
     transformation: (original, encrypted) => [
       `Your original message: "${original}"`,
       `We simply wrote it backwards`,
@@ -90,7 +90,7 @@ export const algorithms = {
     code: 'C7', 
     encrypt: encrypt.encryptBase64, 
     decrypt: decrypt.decryptBase64,
-    description: 'Encodes data using 64 printable ASCII characters. Commonly used for data transmission.',
+    description: 'Converts your message into a special computer-friendly format using only safe characters. Not really encryption, but commonly used to prepare data for sending over the internet.',
     transformation: (original, encrypted) => [
       `Your original message: "${original}"`,
       `We converted your text into computer numbers (binary)`,
@@ -104,7 +104,7 @@ export const algorithms = {
     code: 'C8', 
     encrypt: encrypt.encryptSimpleSubstitution, 
     decrypt: decrypt.decryptSimpleSubstitution,
-    description: 'Each letter is replaced by another fixed letter. Can be broken with frequency analysis.',
+    description: 'Creates a secret alphabet where each letter is swapped for another. Like having a decoder ring! Can be cracked by looking at which letters appear most often.',
     transformation: (original, encrypted) => [
       `Your original message: "${original}"`,
       `We replaced each letter with a different one (a→q, b→w, c→e...)`,
@@ -118,7 +118,7 @@ export const algorithms = {
     code: 'C9', 
     encrypt: encrypt.encryptRailFence, 
     decrypt: decrypt.decryptRailFence,
-    description: 'Writes the message in a zigzag pattern across multiple rails, then reads row by row.',
+    description: 'Writes your message in a zigzag pattern on multiple lines, then reads it line by line. Imagine writing while bouncing up and down on a fence rail!',
     transformation: (original, encrypted) => [
       `Your original message: "${original}"`,
       `We wrote your message in a zigzag pattern on 3 lines`,
@@ -132,7 +132,7 @@ export const algorithms = {
     code: 'C10', 
     encrypt: encrypt.encryptPlayfair, 
     decrypt: decrypt.decryptPlayfair,
-    description: 'Uses a 5×5 grid of letters and encrypts pairs of letters (digraphs). Used in WWI.',
+    description: 'Uses a 5×5 grid to encrypt letter pairs instead of single letters. Soldiers used this in World War I because it was harder to crack than other ciphers of its time.',
     transformation: (original, encrypted) => [
       `Your original message: "${original}"`,
       `We made everything uppercase and grouped letters into pairs`,
@@ -146,7 +146,7 @@ export const algorithms = {
     code: 'C11', 
     encrypt: encrypt.encryptBaconian, 
     decrypt: decrypt.decryptBaconian,
-    description: 'Encodes each letter as a 5-bit pattern using only A and B. Can be hidden in text formatting.',
+    description: 'Turns each letter into a 5-character code using only A and B. Clever trick: you can hide this by making some words bold or italic - the pattern becomes invisible!',
     transformation: (original, encrypted) => [
       `Your original message: "${original}"`,
       `We replaced each letter with a pattern of 5 A's and B's`,
@@ -160,7 +160,7 @@ export const algorithms = {
     code: 'C12', 
     encrypt: encrypt.encryptPolybius, 
     decrypt: decrypt.decryptPolybius,
-    description: 'Uses a 5×5 grid where each letter is represented by its row and column coordinates.',
+    description: 'Arranges the alphabet in a 5×5 grid (like a bingo card) and replaces each letter with its grid coordinates. Invented by an ancient Greek historian!',
     transformation: (original, encrypted) => [
       `Your original message: "${original}"`,
       `We arranged the alphabet in a 5×5 grid (like a bingo card)`,
@@ -174,7 +174,7 @@ export const algorithms = {
     code: 'C13', 
     encrypt: encrypt.encryptAutokey, 
     decrypt: decrypt.decryptAutokey,
-    description: 'Like Vigenère but uses the message itself (after the key) as the key. More secure.',
+    description: 'Similar to Vigenère, but uses your own message as part of the encryption key! The message helps hide itself, making it more secure than regular keyword ciphers.',
     transformation: (original, encrypted) => [
       `Your original message: "${original}"`,
       `We started with the keyword "KEY"`,
@@ -189,7 +189,7 @@ export const algorithms = {
     code: 'C14',
     encrypt: encrypt.encryptAES,
     decrypt: decrypt.decryptAES,
-    description: 'Modern symmetric encryption standard used worldwide. Uses substitution-permutation network with multiple rounds. Simplified educational version.',
+    description: 'The encryption used by governments and banks worldwide to protect top-secret information. Your message gets scrambled through multiple rounds of mixing and shuffling. (This is a simplified teaching version!)',
     transformation: (original, encrypted) => [
       `Your original message: "${original}"`,
       `We used a strong password to scramble your message`,
@@ -203,7 +203,7 @@ export const algorithms = {
     code: 'C15',
     encrypt: encrypt.encryptDES,
     decrypt: decrypt.decryptDES,
-    description: 'Classic block cipher using Feistel network structure. Was the federal standard from 1977-2005. Simplified educational version.',
+    description: 'The official U.S. government encryption from 1977 to 2005. Protected everything from military secrets to banking data before computers got fast enough to crack it. (This is a simplified teaching version!)',
     transformation: (original, encrypted) => [
       `Your original message: "${original}"`,
       `We used an 8-character password for scrambling`,
@@ -217,7 +217,7 @@ export const algorithms = {
     code: 'C16',
     encrypt: encrypt.encryptBlowfish,
     decrypt: decrypt.decryptBlowfish,
-    description: 'Fast block cipher using key-dependent S-boxes and Feistel network. Designed by Bruce Schneier in 1993. Simplified version.',
+    description: 'A fast and flexible cipher designed in 1993. Creates a custom scrambling pattern based on your password, making each encryption unique. Still used in some password managers today! (This is a simplified teaching version!)',
     transformation: (original, encrypted) => [
       `Your original message: "${original}"`,
       `We created a custom scrambling table from the password`,
@@ -231,7 +231,7 @@ export const algorithms = {
     code: 'C17',
     encrypt: encrypt.encryptChaCha20,
     decrypt: decrypt.decryptChaCha20,
-    description: 'Modern stream cipher using ARX operations (Add-Rotate-XOR). Fast and secure, used in TLS. Simplified educational version.',
+    description: 'A super-fast modern cipher that protects your web browsing right now! When you see the lock icon on websites, there\'s a good chance ChaCha20 is keeping your data safe. (This is a simplified teaching version!)',
     transformation: (original, encrypted) => [
       `Your original message: "${original}"`,
       `We generated a unique scrambling pattern from the password`,
@@ -245,7 +245,7 @@ export const algorithms = {
     code: 'C18',
     encrypt: encrypt.encryptRC4,
     decrypt: decrypt.decryptRC4,
-    description: 'Variable-key-size stream cipher. Simple and fast, historically used in SSL/TLS and WEP. Simplified educational implementation.',
+    description: 'A simple but clever cipher that was popular in early internet security (1990s-2000s). Creates a continuous stream of scrambling numbers. Now retired from serious use, but great for learning! (This is a simplified teaching version!)',
     transformation: (original, encrypted) => [
       `Your original message: "${original}"`,
       `We created a 256-number scrambling sequence from the password`,
